@@ -19,4 +19,5 @@ export interface Movie {
   average_rating: number;
   premiere_russia?: string;
   premiere_world: string;
+  id: number
 }

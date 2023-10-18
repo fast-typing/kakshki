@@ -1,13 +1,15 @@
+import { ThemeProvider } from "@emotion/react";
 import React from "react";
-import "./App.css";
-import Header from "./components/Header";
+import Header from "./components/Header/Header";
+import Main from "./pages/Main";
+import theme from './theme.mui'
 
 function App() {
   return (
-    <>
+    <ThemeProvider theme={theme}>
       <Header />
-      <div className="App"></div>
-    </>
+      <Main />
+    </ThemeProvider>
   );
 }
 

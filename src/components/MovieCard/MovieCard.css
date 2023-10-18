@@ -1,0 +1,12 @@
+.card {    
+    position: relative;
+    width: 300px;
+    display: grid;
+    gap: 4px;
+
+    & .float-icon {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+    }
+}
