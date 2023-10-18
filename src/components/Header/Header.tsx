@@ -3,33 +3,44 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
-import MovieIcon from '@mui/icons-material/Movie';
+import MovieIcon from "@mui/icons-material/Movie";
 import { styled } from "@mui/material";
-import CloseIcon from '@mui/icons-material/Close';
-import './Header.css'
+import CloseIcon from "@mui/icons-material/Close";
+import "./Header.css";
 
 export default function Header() {
   const [search, setSearch] = useState("");
-  const [inputOpen, setInputOpen] = useState(false)
-  let inputRef = useRef(null)
+  const [inputOpen, setInputOpen] = useState(false);
+  let inputRef = useRef(null);
 
   const openedStyle = {
-    width: '100%',
-    transition: 'width 1s',
+    width: "200px",
+    transition: "width .5s, opacity .4s, padding .6s",
+    opacity: 1,
+    paddingLeft: 12,
+    paddingRight: 12,
   };
   const closedStyle = {
-    width: 50,
-    transition: 'width 1s',
+    width: 0,
+    transition: "width .5s, opacity .4s, padding .6s",
+    opacity: 0,
+    paddingLeft: 0,
+    paddingRight: 0,
   };
 
   function findBySearch(event: any): void {
-    event.preventDefault()
+    event.preventDefault();
     console.log(event);
   }
 
-  function focus() {
-    inputRef.current.focus()
-    setInputOpen((prev) => !prev)
+  function focus(): void {
+    inputRef.current.focus();
+    setInputOpen((prev) => !prev);
+  }
+
+  function closeInput(): void {
+    if (search.length) return
+    setInputOpen(false);
   }
 
   return (
@@ -40,10 +51,21 @@ export default function Header() {
           <h2>movieRank</h2>
         </div>
         <form className="flex gap-2 w-auto" onSubmit={findBySearch}>
-          <div className="pseudo-input" style={inputOpen ? openedStyle : closedStyle}>
-            <SearchIcon sx={{ cursor: 'pointer' }} onClick={focus} />
-            <input className="input" type="text" ref={inputRef} placeholder="Поиск..." />
-          </div>
+          <span className="pseudo-input">
+            <span className="material-symbols-outlined" onClick={focus}>
+              search
+            </span>
+            <input
+              value={search}
+              style={inputOpen ? openedStyle : closedStyle}
+              className="input"
+              type="text"
+              ref={inputRef}
+              onChange={(e) => setSearch(e.target.value)}
+              onBlur={closeInput}
+              placeholder="Поиск..."
+            />
+          </span>
           <Button variant="contained">Вход</Button>
           <Button variant="contained">Регистрация</Button>
         </form>

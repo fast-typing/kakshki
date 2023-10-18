@@ -1,4 +1,16 @@
 .pseudo-input {
-    float: right;
-    width: 100%;
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+
+  & span {
+    cursor: pointer;
+    padding: 6px;
+  }
+
+  & input {
+    height: 100%;
+    outline: none;
+    border-radius: 6px;
+  }
 }
