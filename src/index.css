@@ -17,11 +17,32 @@ header, main {
 }
 
 input {
-  color: black
+  color: white;
+  padding: 6px 14px;
+  border-radius: 4px;
+  outline: none;
+  border: 1px solid rgb(150, 150, 150);
+  transition: .2s;
+  background-color: #212121;
+
+  &:hover {
+    border-color: #d32f2f;
+  }
+
+  /* #e57373';
+    400: '#ef5350';
+    500: '#f44336 */
+
+  &:focus {
+    border-color: #d32f2f;
+    box-shadow: 0 0 0 0.1rem #d32f2f;
+  }
 }
 
 main {
   padding: 60px 0;
+  min-height: calc(100vh - 84px);
+  height: 100%;
 }
 
 .main-container {
@@ -30,4 +51,15 @@ main {
 
 .header-container {
   background-color: #212121;
+}
+
+@media screen and (max-width: 1280px) {
+  header, main {
+    width: 100%;
+    padding: 0 25px;
+  }
+
+  main {
+    padding: 60px 25px;
+  }
 }

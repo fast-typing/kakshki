@@ -1,6 +1,5 @@
 .card {    
     position: relative;
-    width: 227px;
     display: grid;
     gap: 4px;
     color: white;

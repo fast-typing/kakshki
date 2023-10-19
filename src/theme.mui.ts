@@ -1,5 +1,5 @@
-import { createTheme, TextFieldProps } from "@mui/material";
-import { grey, red } from "@mui/material/colors";
+import { createTheme } from "@mui/material";
+import { red } from "@mui/material/colors";
 
 declare module '@mui/material/styles' {
   interface Theme {
@@ -43,22 +43,6 @@ const theme = createTheme({
         },
       ]
     },
-    MuiTextField: {
-      variants: [{
-        props: {},
-        style: {
-          '& .MuiOutlinedInput-root': {
-            color: 'white',
-            '& fieldset': {
-              borderColor: 'white',
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: mainColor
-            }
-          },
-        }
-      }]
-    },
     MuiInputLabel: {
       variants: [{
         props: {},
@@ -100,6 +84,14 @@ const theme = createTheme({
         }
       }]
     },
+    MuiSvgIcon: {
+      variants: [{
+        props: {},
+        style: {
+          color: "white",
+        }
+      }]
+    }
   },
   typography: {
     'fontFamily': 'Montserrat',
