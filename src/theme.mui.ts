@@ -43,31 +43,63 @@ const theme = createTheme({
         },
       ]
     },
-    MuiCircularProgress: {
-      variants: [{
-        props: {},
-        style: {
-          color: mainColor
-        }
-      }]
-    },
     MuiTextField: {
       variants: [{
         props: {},
         style: {
           '& .MuiOutlinedInput-root': {
+            color: 'white',
+            '& fieldset': {
+              borderColor: 'white',
+            },
             '&.Mui-focused fieldset': {
-              'border': '1px solid ' + grey[100]
-            },
-            '&:hover': {
-              'border': '1px solid ' + grey[300]
-            },
-            'border': '1px solid ' + grey[500] ,
-            color: "white"
+              borderColor: mainColor
+            }
           },
         }
       }]
-    }
+    },
+    MuiInputLabel: {
+      variants: [{
+        props: {},
+        style: {
+          color: "white",
+          '&.Mui-focused': {
+            color: "white",
+            fontWeight: 500,
+          }
+        }
+      }]
+    },
+    MuiIconButton: {
+      variants: [{
+        props: {},
+        style: {
+          color: "white",
+          backgroundColor: mainColor,
+          '&:hover': {
+            backgroundColor: hoverColor
+          }
+        }
+      }]
+    },
+    MuiSelect: {
+      variants: [{
+        props: {},
+        style: {
+          color: "white",
+          '& .MuiOutlinedInput-notchedOutline': {
+            borderColor: 'white'
+          },
+          '&.Mui-focused fieldset': {
+            borderColor: mainColor + '!important'
+          },
+          '& svg': {
+            color: 'white'
+          }
+        }
+      }]
+    },
   },
   typography: {
     'fontFamily': 'Montserrat',

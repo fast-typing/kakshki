@@ -1,20 +1,23 @@
-import React, { MutableRefObject, useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import SearchIcon from "@mui/icons-material/Search";
-import InputAdornment from "@mui/material/InputAdornment";
 import MovieIcon from "@mui/icons-material/Movie";
-import { styled } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { Backdrop, Fade, Modal, styled } from "@mui/material";
+import { login, registration } from "../../http/http";
 import "./Header.css";
+import { Link, useNavigate } from "react-router-dom";
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 
 export default function Header() {
   const [search, setSearch] = useState("");
   const [inputOpen, setInputOpen] = useState(false);
+  const [modal, setModal] = useState({ isOpen: false, type: 'Вход' });
+  const [modalForm, setModalForm] = useState({ username: '', password: '', email: '' })
+  const navigate = useNavigate()
   let inputRef = useRef(null);
 
   const openedStyle = {
-    width: "200px",
+    width: "250px",
     transition: "width .5s, opacity .4s, padding .6s",
     opacity: 1,
     paddingLeft: 12,
@@ -28,14 +31,24 @@ export default function Header() {
     paddingRight: 0,
   };
 
-  function findBySearch(event: any): void {
+  function findBySearch(event: any) {
     event.preventDefault();
-    console.log(event);
+    navigate('/search?word=' + search)
+  }
+
+  function submitModal(event: any) {
+    event.preventDefault();
+    if (modalForm.username.length < 3 || modalForm.password.length < 3) return
+    if (modal.type == 'Вход') {
+      login(modalForm)
+    } else {
+      registration(modalForm)
+    }
   }
 
   function focus(): void {
     inputRef.current.focus();
-    setInputOpen((prev) => !prev);
+    setInputOpen(!inputOpen);
   }
 
   function closeInput(): void {
@@ -43,14 +56,28 @@ export default function Header() {
     setInputOpen(false);
   }
 
+  function openModal(type: 'Вход' | 'Регистрация') {
+    setModal({ isOpen: true, type: type })
+  }
+
+  function handleChange(e: any) {
+    setModalForm((prev) => {
+      return { ...prev, [e.target.name]: e.target.value }
+    })
+  }
+
+  const closeModal = () => { setModal({ isOpen: false, type: modal.type }); setModalForm({ username: '', password: '', email: '' }) };
+
   return (
     <div className="header-container">
       <header className="m-auto flex items-center justify-between py-6">
-        <div className="flex items-center gap-2">
-          <MovieIcon fontSize="large" />
-          <h2>movieRank</h2>
-        </div>
-        <form className="flex gap-2 w-auto" onSubmit={findBySearch}>
+        <Link to={``}>
+          <div className="flex items-center gap-2">
+            <MovieIcon fontSize="large" />
+            <h2>movieRank</h2>
+          </div>
+        </Link>
+        <form className="flex gap-2" onSubmit={findBySearch}>
           <span className="pseudo-input">
             <span className="material-symbols-outlined" onClick={focus}>
               search
@@ -63,33 +90,56 @@ export default function Header() {
               ref={inputRef}
               onChange={(e) => setSearch(e.target.value)}
               onBlur={closeInput}
-              placeholder="Поиск..."
+              placeholder="Найти..."
             />
           </span>
-          <Button variant="contained">Вход</Button>
-          <Button variant="contained">Регистрация</Button>
+          {/* <Link to={`search`}>
+            <Button variant="outlined">
+              Поиск
+            </Button>
+          </Link> */}
+          <Link to={``}>
+            <Button variant="contained">
+              Главная
+            </Button>
+          </Link>
+          <Link to={`profile`}>
+            <Button variant="contained">
+              Профиль
+            </Button>
+          </Link>
         </form>
-        {/* <TextField
-          type="text"
-          size="small"
-          ref={inputRef}
-          placeholder="Поиск..."
-          style={inputOpen ? openedStyle : closedStyle}
-          onBlur={() => setInputOpen(false)}
-          onFocus={() => setInputOpen(true)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment sx={{ cursor: 'pointer' }} onClick={focus} position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-            // endAdornment: (
-            //   <InputAdornment position="end" sx={{ cursor: 'pointer' }} onClick={() => () => toggleInput(false)(0)}>
-            //     <CloseIcon />
-            //   </InputAdornment>
-            // ),
+        <div className="flex gap-2">
+          <Button onClick={() => openModal('Вход')} variant="contained">Вход</Button>
+          <Button onClick={() => openModal('Регистрация')} variant="contained">Регистрация</Button>
+        </div>
+        <Modal
+          open={modal.isOpen}
+          onClose={closeModal}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+          closeAfterTransition
+          slots={{ backdrop: Backdrop }}
+          slotProps={{
+            backdrop: {
+              timeout: 500,
+            },
           }}
-        /> */}
+        >
+          <Fade in={modal.isOpen}>
+            <form className="modalContent w-[300px]" onSubmit={submitModal}>
+              <div className="flex justify-between">
+                <h2>{modal.type}</h2>
+                <CloseRoundedIcon className="cursor-pointer" onClick={closeModal} />
+              </div>
+              <TextField size="small" name="username" placeholder="Логин" onChange={handleChange} value={modalForm.username}></TextField>
+              {modal.type === 'Регистрация' ? <TextField size="small" name="email" placeholder="Почта" onChange={handleChange} value={modalForm.email}></TextField> : ''}
+              <TextField size="small" name="password" placeholder="Пароль" onChange={handleChange} value={modalForm.password}></TextField>
+              <Button variant="contained" onClick={submitModal}>Отправить</Button>
+            </form>
+          </Fade>
+        </Modal>
+
       </header>
     </div>
   );

@@ -1,30 +1,30 @@
 import React, { useState } from "react";
 import { Movie } from "../../interfaces/Interfaces";
 import StarIcon from '@mui/icons-material/Star';
-import Button from "@mui/material/Button";
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import './MovieCard.css'
+import { Chip } from "@mui/material";
+import IconButton from '@mui/material/IconButton';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 
 export default function MovieCard(props: { movie: Movie }) {
     const [isFavorite, setIsFavorite] = useState(false)
 
-    function getGenres() {
-        return props.movie.genres.map((genre) => <div>{genre}</div>) 
-    }
+    function toGenre() { }
 
-    function toggleFavorite(): void {
-        setIsFavorite((prev) => !prev)
-    }
+    function getGenres() { return props.movie.genres.map((genre) => <Chip onClick={toGenre} label={genre} variant="outlined" />) }
+
+    function toggleFavorite(): void { setIsFavorite(!isFavorite) }
 
     return (
         <div className="card">
             <div className="float-icon">
-                <Button sx={{ paddingX: 1.25, paddingY: 1, width: "fit-content", minWidth: "fit-content" }} variant="outlined" onClick={toggleFavorite}>
-                    {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                </Button>
+                <IconButton onClick={toggleFavorite} color={isFavorite ? "secondary" : "success"}>
+                    {isFavorite ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+                </IconButton>
             </div>
-            <img src={props.movie.poster} alt={props.movie.poster} />
+            <img src='https://www.iephb.ru/wp-content/uploads/2021/01/img-placeholder.png' alt={props.movie.poster} />
+            {/* <img src={props.movie.poster} alt={props.movie.poster} /> */}
             <div className="flex justify-between items-center">
                 <h2>{props.movie.title}</h2>
                 <div className="flex">
