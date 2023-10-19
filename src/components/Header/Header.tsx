@@ -1,24 +1,26 @@
 import React, { useRef, useState } from "react";
 import Button from "@mui/material/Button";
 import MovieIcon from "@mui/icons-material/Movie";
-import { Backdrop, Fade, Modal } from "@mui/material";
+import { Backdrop, Box, Drawer, Fade, IconButton, Modal } from "@mui/material";
 import { login, registration } from "../../http/http";
 import "./Header.css";
 import { Link, useNavigate } from "react-router-dom";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import BurgerMenu from "../BurgerMenu/BurgerMenu";
+import DragHandleRoundedIcon from "@mui/icons-material/DragHandleRounded";
+import { ReactJSXElement } from "@emotion/react/types/jsx-namespace";
 
 export default function Header() {
+  let inputRef = useRef(null);
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [inputOpen, setInputOpen] = useState(false);
   const [modal, setModal] = useState({ isOpen: false, type: "Вход" });
+  const [openSideBar, setOpenSideBar] = useState(false);
   const [modalForm, setModalForm] = useState({
     username: "",
     password: "",
     email: "",
   });
-  const navigate = useNavigate();
-  let inputRef = useRef(null);
 
   const openedStyle = {
     width: "250px",
@@ -27,6 +29,7 @@ export default function Header() {
     paddingLeft: 12,
     paddingRight: 12,
   };
+
   const closedStyle = {
     width: 0,
     transition: "width .5s, opacity .4s, padding .6s",
@@ -35,9 +38,19 @@ export default function Header() {
     paddingRight: 0,
   };
 
+  const sideBarStyle = {
+    width: "50vw",
+    maxWidth: "500px",
+    minWidth: "350px",
+    backgroundColor: "#424242",
+    height: "100vh",
+    padding: 4,
+  };
+
   function findBySearch(event: any) {
     event.preventDefault();
-    navigate("/search?word=" + search);
+    if (!search.length) return;
+    navigate(`/search?title=${search}`);
   }
 
   function submitModal(event: any) {
@@ -75,6 +88,67 @@ export default function Header() {
     setModalForm({ username: "", password: "", email: "" });
   };
 
+  const nav = (isMobile: boolean): ReactJSXElement => {
+    return (
+      <>
+        <form
+          className={isMobile ? "grid gap-6 mb-6" : "flex gap-2"}
+          onSubmit={findBySearch}
+        >
+          <span className="pseudo-input">
+            <span
+              className="material-symbols-outlined"
+              onClick={isMobile ? findBySearch : focus}
+            >
+              search
+            </span>
+            <input
+              value={search}
+              style={
+                isMobile
+                  ? { width: "100%" }
+                  : inputOpen
+                  ? openedStyle
+                  : closedStyle
+              }
+              className="input"
+              type="text"
+              ref={inputRef}
+              onChange={(e) => setSearch(e.target.value)}
+              onBlur={closeInput}
+              placeholder="Найти..."
+            />
+            {isMobile ? (
+              <IconButton onClick={() => setOpenSideBar(false)}>
+                <CloseRoundedIcon />
+              </IconButton>
+            ) : (
+              ""
+            )}
+          </span>
+          <Link to={``} className={isMobile ? "w-full" : ""}>
+            <Button variant="contained" className={isMobile ? "w-full" : ""}>
+              Главная
+            </Button>
+          </Link>
+          <Link to={`profile`} className={isMobile ? "w-full" : ""}>
+            <Button variant="contained" className={isMobile ? "w-full" : ""}>
+              Профиль
+            </Button>
+          </Link>
+        </form>
+        <div className={isMobile ? "grid gap-6" : "flex gap-2"}>
+          <Button onClick={() => openModal("Вход")} variant="contained">
+            Вход
+          </Button>
+          <Button onClick={() => openModal("Регистрация")} variant="contained">
+            Регистрация
+          </Button>
+        </div>
+      </>
+    );
+  };
+
   return (
     <div className="header-container">
       <header className="m-auto flex items-center justify-between py-6">
@@ -84,44 +158,18 @@ export default function Header() {
             <h2>movieRank</h2>
           </div>
         </Link>
-        <div className="hidden lg:flex gap-2">
-          <form className="flex gap-2" onSubmit={findBySearch}>
-            <span className="pseudo-input">
-              <span className="material-symbols-outlined" onClick={focus}>
-                search
-              </span>
-              <input
-                value={search}
-                style={inputOpen ? openedStyle : closedStyle}
-                className="input"
-                type="text"
-                ref={inputRef}
-                onChange={(e) => setSearch(e.target.value)}
-                onBlur={closeInput}
-                placeholder="Найти..."
-              />
-            </span>
-            <Link to={``}>
-              <Button variant="contained">Главная</Button>
-            </Link>
-            <Link to={`profile`}>
-              <Button variant="contained">Профиль</Button>
-            </Link>
-          </form>
-          <div className="hidden lg:flex gap-2">
-            <Button onClick={() => openModal("Вход")} variant="contained">
-              Вход
-            </Button>
-            <Button
-              onClick={() => openModal("Регистрация")}
-              variant="contained"
-            >
-              Регистрация
-            </Button>
-          </div>
-        </div>
+        <div className="hidden lg:flex gap-2">{nav(false)}</div>
         <div className="block lg:hidden">
-          <BurgerMenu />
+          <IconButton onClick={() => setOpenSideBar(true)}>
+            <DragHandleRoundedIcon />
+          </IconButton>
+          <Drawer
+            anchor={"right"}
+            open={openSideBar}
+            onClose={() => setOpenSideBar(false)}
+          >
+            <Box sx={sideBarStyle}>{nav(true)}</Box>
+          </Drawer>
         </div>
         <Modal
           open={modal.isOpen}

@@ -10,12 +10,13 @@ import MovieCard from "../../components/MovieCard/MovieCard";
 import { Movie } from "../../interfaces/Interfaces";
 import Select from "@mui/material/Select";
 import CasinoRoundedIcon from "@mui/icons-material/CasinoRounded";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import MovieSceleton from "../../components/MovieSceleton/MovieSceleton";
 import AdaptiveContainer from "../../components/AdaptiveContainer/AdaptiveContainer";
 
 export default function Search() {
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [defMovies, setDefMovies] = useState<Movie[]>([]);
   const navigate = useNavigate();
   const [filter, setFilter] = useState({
@@ -35,6 +36,7 @@ export default function Search() {
       .then((response) => response.json())
       .then((res: Movie[]) => {
         setMovies(res);
+        
         setTimeout(() => {
           setSkeleton((prev) => {
             return { ...prev, loading: false };
@@ -44,14 +46,27 @@ export default function Search() {
       .catch((error) => console.error(error));
   }, []);
 
+  useEffect(() => {
+    checkFilterByQuery("genre")
+    checkFilterByQuery("title")
+  }, [searchParams.get("genre"), searchParams.get("title")])
+
   function handleChange(e) {
     setFilter((prev) => {
-      return {
+      const newFilter = {
         ...filter,
         [e.target.name]: e.target.value,
       };
+
+      return newFilter;
     });
     console.log(filter);
+  }
+
+  function checkFilterByQuery(field: string) {
+    const value = searchParams.get(field)
+    if (!value) return
+    setFilter({...filter, [field]: value})
   }
 
   function routeToRandom() {
@@ -121,7 +136,9 @@ export default function Search() {
           skeleton.loading
             ? skeleton.skeleton
             : movies.length
-            ? movies.map((movie) => <MovieCard key={movie.id} movie={movie}></MovieCard>)
+            ? movies.map((movie) => (
+                <MovieCard key={movie.id} movie={movie}></MovieCard>
+              ))
             : "Пусто :("
         }
       />
