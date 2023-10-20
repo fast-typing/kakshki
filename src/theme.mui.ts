@@ -1,5 +1,5 @@
 import { createTheme } from "@mui/material";
-import { red } from "@mui/material/colors";
+import { grey, red } from "@mui/material/colors";
 
 declare module '@mui/material/styles' {
   interface Theme {
@@ -43,6 +43,24 @@ const theme = createTheme({
         },
       ]
     },
+    MuiToggleButton: {
+      variants: [
+        {
+          props: {},
+          style: {
+            backgroundColor: '#212121',
+            transition: '.2s',
+            color: "white",
+            '&.Mui-selected': {
+              backgroundColor: mainColor
+            },
+            '&:hover.Mui-selected': {
+              backgroundColor: hoverColor
+            }
+          }
+        },
+      ]
+    },
     MuiInputLabel: {
       variants: [{
         props: {},
@@ -60,9 +78,14 @@ const theme = createTheme({
         props: {},
         style: {
           color: "white",
+          transition: '.2s',
           backgroundColor: mainColor,
           '&:hover': {
             backgroundColor: hoverColor
+          },
+          '&.Mui-disabled': {
+            backgroundColor: mainColor,
+            opacity: .6
           }
         }
       }]
@@ -89,6 +112,16 @@ const theme = createTheme({
         props: {},
         style: {
           color: "white",
+        }
+      }]
+    },
+    MuiRating: {
+      variants: [{
+        props: {},
+        style: {
+          '& svg': {
+            color: mainColor,
+          }
         }
       }]
     }

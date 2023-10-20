@@ -7,13 +7,16 @@ import IconButton from "@mui/material/IconButton";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import { useNavigate } from "react-router-dom";
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
+import { markFilm } from "../../http/http";
 
 export default function MovieCard(props: { movie: Movie }) {
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [favorite, setFavorite] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   function toGenre(genre: string) {
-    navigate(`/search?genre=${genre}`);
+    navigate(`/search?genres=${genre}`);
   }
 
   function getGenres() {
@@ -22,23 +25,27 @@ export default function MovieCard(props: { movie: Movie }) {
     ));
   }
 
-  function toggleFavorite(): void {
-    setIsFavorite(!isFavorite);
+  // !!!
+  async function toggleFavorite() {
+    setLoading(true)
+    const token = '123'
+    const res = await markFilm(token, props.movie.id, "favorite")
+    setTimeout(() => {
+      if (res) { setFavorite(!favorite) }
+      setLoading(false)
+    }, 2000)
   }
 
   const routeToMovie = () => {
     navigate(`/movie/${props.movie.id}`);
   };
 
+  const floatIcon = loading ? <RefreshRoundedIcon className="loading" /> : (favorite ? <BookmarkIcon /> : <BookmarkBorderIcon />)
+
   return (
     <div className="card">
       <div className="float-icon">
-        <IconButton
-          onClick={toggleFavorite}
-          color={isFavorite ? "secondary" : "success"}
-        >
-          {isFavorite ? <BookmarkIcon /> : <BookmarkBorderIcon />}
-        </IconButton>
+        <IconButton disabled={loading} onClick={toggleFavorite}>{floatIcon}</IconButton>
       </div>
       <div className="grid gap-1 cursor-pointer" onClick={routeToMovie}>
         <img

@@ -53,7 +53,7 @@ export default function Header() {
     navigate(`/search?title=${search}`);
   }
 
-  function submitModal(event: any) {
+  async function submitModal(event: any) {
     event.preventDefault();
     if (modalForm.username.length < 3 || modalForm.password.length < 3) return;
     if (modal.type === "Вход") {
@@ -65,7 +65,7 @@ export default function Header() {
 
   function focus(): void {
     inputRef.current.focus();
-    setInputOpen(!inputOpen);
+    setInputOpen(true);
   }
 
   function closeInput(): void {
@@ -95,28 +95,30 @@ export default function Header() {
           className={isMobile ? "grid gap-6 mb-6" : "flex gap-2"}
           onSubmit={findBySearch}
         >
-          <span className="pseudo-input">
+          <span className="pseudo-input"
+            onMouseEnter={() => setInputOpen(true)}
+            onMouseLeave={() => { console.log(inputRef); if (inputRef) setInputOpen(false); }}
+          >
             <span
               className="material-symbols-outlined"
-              onClick={isMobile ? findBySearch : focus}
+              onClick={findBySearch}
             >
               search
             </span>
             <input
               value={search}
-              style={
-                isMobile
-                  ? { width: "100%" }
-                  : inputOpen
-                  ? openedStyle
-                  : closedStyle
-              }
-              className="input"
               type="text"
               ref={inputRef}
               onChange={(e) => setSearch(e.target.value)}
               onBlur={closeInput}
               placeholder="Найти..."
+              style={
+                isMobile
+                  ? { width: "100%" }
+                  : inputOpen
+                    ? openedStyle
+                    : closedStyle
+              }
             />
             {isMobile ? (
               <IconButton onClick={() => setOpenSideBar(false)}>
@@ -136,7 +138,7 @@ export default function Header() {
               Профиль
             </Button>
           </Link>
-        </form>
+        </form >
         <div className={isMobile ? "grid gap-6" : "flex gap-2"}>
           <Button onClick={() => openModal("Вход")} variant="contained">
             Вход

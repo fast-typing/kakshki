@@ -4,6 +4,7 @@ import {
   InputLabel,
   MenuItem,
   Skeleton,
+  Snackbar,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import MovieCard from "../../components/MovieCard/MovieCard";
@@ -15,14 +16,13 @@ import MovieSceleton from "../../components/MovieSceleton/MovieSceleton";
 import AdaptiveContainer from "../../components/AdaptiveContainer/AdaptiveContainer";
 
 export default function Search() {
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const [movies, setMovies] = useState<{ old: Movie[], current: Movie[] }>({ old: [], current: [] });
   const [searchParams, setSearchParams] = useSearchParams();
-  const [defMovies, setDefMovies] = useState<Movie[]>([]);
   const navigate = useNavigate();
   const [filter, setFilter] = useState({
     title: "",
     country: "",
-    genre: "",
+    genres: "",
     year: "",
     ageRating: "",
   });
@@ -35,8 +35,9 @@ export default function Search() {
     fetch("https://dvigit.onrender.com/read_all_films")
       .then((response) => response.json())
       .then((res: Movie[]) => {
-        setMovies(res);
-        
+        setMovies({ old: res, current: res })
+        for (let key of Object.keys(filter)) { checkQuery(key) }
+
         setTimeout(() => {
           setSkeleton((prev) => {
             return { ...prev, loading: false };
@@ -46,32 +47,45 @@ export default function Search() {
       .catch((error) => console.error(error));
   }, []);
 
+
   useEffect(() => {
-    checkFilterByQuery("genre")
-    checkFilterByQuery("title")
-  }, [searchParams.get("genre"), searchParams.get("title")])
+    for (let key of Object.keys(filter)) { checkQuery(key) }
+  }, [searchParams.get('title'), searchParams.get('genres')])
 
-  function handleChange(e) {
-    setFilter((prev) => {
-      const newFilter = {
-        ...filter,
-        [e.target.name]: e.target.value,
-      };
-
-      return newFilter;
-    });
-    console.log(filter);
+  function checkQuery(name: string) {
+    const value = searchParams.get(name)
+    if (!value?.length) return
+    handleChange({ target: { name: name, value: value } })
   }
 
-  function checkFilterByQuery(field: string) {
-    const value = searchParams.get(field)
-    if (!value) return
-    setFilter({...filter, [field]: value})
+
+  useEffect(() => {
+    if (!movies.old.length) return
+    let allMovies = movies.old
+    allMovies = filterByField('title', allMovies)
+    allMovies = filterByField('country', allMovies)
+    allMovies = filterByField('year', allMovies)
+    allMovies = filterByField('genres', allMovies, true)
+    setMovies({ old: movies.old, current: allMovies })
+  }, [filter])
+
+  function filterByField(field: string, allMovies: Movie[], isArray = false): Movie[] {
+    const value = filter[field]
+    if (!value?.length) return allMovies
+    if (isArray) {
+      return allMovies.filter(movie => movie[field].filter(genre => genre.includes(value)).length)
+    } else {
+      return allMovies.filter(movie => movie[field].toLowerCase().includes(value))
+    }
+  }
+
+  function handleChange(e) {
+    setFilter({ ...filter, [e.target.name]: e.target.value.toLowerCase(), });
   }
 
   function routeToRandom() {
-    const randomIndex = Math.floor(Math.random() * movies.length);
-    const id = movies[randomIndex].id;
+    const randomIndex = Math.floor(Math.random() * movies.current.length);
+    const id = movies.current[randomIndex].id;
     navigate(`/movie/${id}`);
   }
 
@@ -93,9 +107,9 @@ export default function Search() {
         />
         <input
           placeholder="Жанр"
-          name="genre"
+          name="genres"
           onChange={handleChange}
-          value={filter.genre}
+          value={filter.genres}
         />
         <input
           placeholder="Страна"
@@ -127,6 +141,7 @@ export default function Search() {
           size="large"
           sx={{ height: "fit-content" }}
           onClick={routeToRandom}
+          disabled={!movies.current.length}
         >
           <CasinoRoundedIcon />
         </IconButton>
@@ -135,11 +150,11 @@ export default function Search() {
         html={
           skeleton.loading
             ? skeleton.skeleton
-            : movies.length
-            ? movies.map((movie) => (
+            : movies.current.length
+              ? movies.current.map((movie) => (
                 <MovieCard key={movie.id} movie={movie}></MovieCard>
               ))
-            : "Пусто :("
+              : "Пусто :("
         }
       />
     </div>
