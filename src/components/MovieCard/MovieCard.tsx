@@ -32,15 +32,15 @@ export default function MovieCard(props: { movie: Movie }) {
 
   return (
     <div className="card">
+      <div className="float-icon">
+        <IconButton
+          onClick={toggleFavorite}
+          color={isFavorite ? "secondary" : "success"}
+        >
+          {isFavorite ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+        </IconButton>
+      </div>
       <div className="grid gap-1 cursor-pointer" onClick={routeToMovie}>
-        <div className="float-icon">
-          <IconButton
-            onClick={toggleFavorite}
-            color={isFavorite ? "secondary" : "success"}
-          >
-            {isFavorite ? <BookmarkIcon /> : <BookmarkBorderIcon />}
-          </IconButton>
-        </div>
         <img
           src={
             props.movie.poster == "string"
