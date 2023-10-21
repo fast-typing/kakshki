@@ -2,7 +2,6 @@ export interface Movie {
   title: string;
   poster: string;
   trailer: string;
-  created_at: number;
   country: string;
   genres: string[];
   year: number;
@@ -19,5 +18,27 @@ export interface Movie {
   average_rating: number;
   premiere_russia?: string;
   premiere_world: string;
-  id: number
+  id: number;
+}
+
+export interface Review {
+  id: number;
+  username: string;
+  user_id: string;
+  film_id: number;
+  rating: number;
+  message: string;
+  title: string;
+  created_at: string;
+}
+
+export interface User {
+  id: string;
+  username: string;
+  planned_films: [];
+  abandoned_films: [];
+  favorite_films: [];
+  postponed_films: [];
+  current_films: [];
+  finished_films: [];
 }

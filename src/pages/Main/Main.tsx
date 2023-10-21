@@ -1,43 +1,65 @@
 import React, { useEffect, useState } from "react";
 import MovieCard from "../../components/MovieCard/MovieCard";
-import { Movie } from "../../interfaces/Interfaces";
-import "./Main.css";
 import MovieSceleton from "../../components/MovieSceleton/MovieSceleton";
 import AdaptiveContainer from "../../components/AdaptiveContainer/AdaptiveContainer";
+import { getAllMovies } from "../../additional/http.service";
+import { Movie } from "../../interfaces/Interfaces";
+import "./Main.css";
 
 export default function Main() {
-  const [movies, setMovies] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [skeleton, setSkeleton] = useState(
-    [1, 1, 1, 1, 1].map((el) => <MovieSceleton />)
-  );
+  const [topMovies, setTopMovies] = useState([]);
+  const [newMovies, setNewMovies] = useState([]);
+  const [skeleton, setSkeleton] = useState({
+    loading: true,
+    content: (
+      <>
+        <MovieSceleton />
+        <MovieSceleton />
+        <MovieSceleton />
+        <MovieSceleton />
+        <MovieSceleton />
+        <MovieSceleton />
+        <MovieSceleton />
+        <MovieSceleton />
+        <MovieSceleton />
+        <MovieSceleton />
+      </>
+    ),
+  });
 
   useEffect(() => {
-    fetch("https://dvigit.onrender.com/read_all_films")
-      .then((response) => response.json())
-      .then((res: Movie[]) => {
-        setMovies(res);
-        setTimeout(() => {
-          setLoading(false);
-        }, 1000);
-      })
-      .catch((error) => console.error(error));
+    const init = async () => {
+      const res = await getAllMovies();
+      if (!res) return;
+      setTopMovies(sortByField("average_rating", res));
+      setNewMovies(sortByField("year", res));
+      setSkeleton({ ...skeleton, loading: false });
+    };
+
+    init();
   }, []);
 
+  function sortByField(field: string, arr: Movie[]) {
+    return arr
+      .sort((curr, prev) => prev[field] - curr[field])
+      .slice(0, 10)
+      .map((movie) => <MovieCard key={movie.id} movie={movie}></MovieCard>);
+  }
+
   return (
-    <div className="favorite">
-      <h1 className="mb-3">Новинки</h1>
-      <AdaptiveContainer
-        html={
-          loading
-            ? skeleton
-            : movies.length
-            ? movies.map((movie) => (
-                <MovieCard key={movie.id} movie={movie}></MovieCard>
-              ))
-            : "Пусто :("
-        }
-      />
-    </div>
+    <>
+      <div>
+        <h1 className="mb-3">Топ 10 лучших фильмов</h1>
+        <AdaptiveContainer
+          content={skeleton.loading ? skeleton.content : topMovies}
+        />
+      </div>
+      <div>
+        <h1 className="mb-3">Новинки</h1>
+        <AdaptiveContainer
+          content={skeleton.loading ? skeleton.content : newMovies}
+        />
+      </div>
+    </>
   );
 }

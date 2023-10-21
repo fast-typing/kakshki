@@ -1,136 +1,195 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Movie } from "../../interfaces/Interfaces";
-import { CircularProgress, Rating, Skeleton, ToggleButton, ToggleButtonGroup } from "@mui/material";
-import { red } from "@mui/material/colors";
-import { getMovie, markFilm } from "../../http/http";
-import DeleteIcon from '@mui/icons-material/Delete';
-import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
-import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import {
+  Divider,
+  IconButton,
+  Rating,
+  Skeleton,
+  ToggleButton,
+  ToggleButtonGroup,
+} from "@mui/material";
+import { getMovie, getReviews, markFilm } from "../../additional/http.service";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
+import { movieFieldsC, toggleButtonsC } from "../../additional/constants";
+import ReviewBlock from "../../components/ReviewBlock/ReviewBlock";
+import AdaptiveContainer from "../../components/AdaptiveContainer/AdaptiveContainer";
 
 export default function MoviePage() {
-  const { id } = useParams();
-  const [movie, setMovie] = useState<Movie>();
-  const [alignment, setAlignment] = useState<string | null>(null);
+  const [movie, setMovie] = useState<Movie>(null);
+  const [alignment, setAlignment] = useState<string>(null);
+  const [reviews, setReviews] = useState(null);
+  const [detailedInfo, setDetailedInfo] = useState(null);
+
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingButtons, setLoadingButtons] = useState<boolean>(false);
-  const fields = {
-    country: 'Страна',
-    genres: 'Жанры',
-    year: 'Год создания',
-    director: 'Режиссер',
-    writers: 'Сценаристы',
-    producers: 'Продессеры',
-    cinematographers: 'Операторы',
-    composers: 'Композиторы',
-    art_directors: 'Художники',
-    editor: 'Монтажеры',
-    budget: 'Бюджет',
-    box_office_world: 'Сборы',
-    age_rating: "Рейтинг MPAA",
-    premiere_russia: 'Премьера в России',
-    premiere_world: 'Премьера в мире',
-  }
-  const [mainInfo, setMainInfo] = useState([])
+  const [loadingFavorite, setLoadingFavorite] = useState<boolean>(false);
+  const [favorite, setFavorite] = useState<boolean>(false);
+
+  const { id } = useParams();
+  const movieFields = movieFieldsC;
 
   useEffect(() => {
-    const fetchData = async () => {
-      const movie = await getMovie(id)
-      if (!movie) return
-      setMovie(movie);
-      const info = []
-      for (let key of Object.keys(fields)) {
-        info.push(<div key={key} className="flex gap-2 items-center justify-between sm:justify-normal">
-          <span className="w-[200px]">{fields[key]}: </span>
-          <h3>{movie[key]}</h3>
-        </div>)
-      }
-      setMainInfo(info)
-      setTimeout(() => {
-        setLoading(false);
-      }, 3000);
-    }
+    const init = async () => {
+      const resMovie = await getMovie(id);
+      const resReviews = await getReviews(id);
+      if (!resMovie || !resReviews) return;
 
-    fetchData()
+      const jsxReviews = resReviews.map((review) => (
+        <ReviewBlock review={review} />
+      ));
+      const info = [];
+      for (let key of Object.keys(movieFields)) {
+        info.push(
+          <div className="flex gap-2 justify-between md:justify-normal">
+            <span className="w-[150px]">{movieFields[key]}: </span>
+            <h3>{resMovie[key]}</h3>
+          </div>
+        );
+      }
+
+      setMovie(resMovie);
+      setReviews(jsxReviews);
+      setDetailedInfo(info);
+      setLoading(false);
+    };
+
+    init();
   }, []);
 
-  //!!!!!
   const handleAlignment = async (
     event: React.MouseEvent<HTMLElement>,
-    newAlignment: "postoponed" | "abondoned" | "finished",
+    newAlignment: "postoponed" | "abondoned" | "finished"
   ) => {
-    setLoadingButtons(true)
-    const token = '123'
-    const res = await markFilm(token, movie.id, newAlignment)
-    setTimeout(() => {
-      if (res) { setAlignment(newAlignment); }
-      setLoading(false)
-    }, 2000)
+    setLoadingButtons(true);
+    const token = "123";
+    const res = await markFilm(token, movie.id, newAlignment);
+    if (typeof res == "string") setAlignment(newAlignment);
+    setLoadingButtons(false);
   };
 
-  const toggleButtons = [
-    { value: 'finished', icon: <CheckRoundedIcon />, text: 'Просмотрено' },
-    { value: 'postoponed', icon: <AccessTimeRoundedIcon />, text: 'Отложено' },
-    { value: 'abondoned', icon: <DeleteIcon />, text: 'Брошено' }
-  ].map((item) => {
+  async function toggleFavorite() {
+    setLoadingFavorite(true);
+    const token = "123";
+    const res = await markFilm(token, movie.id, "favorite");
+    if (typeof res == "string") setFavorite(!favorite);
+    setLoadingFavorite(false);
+  }
+
+  const toggleButtons = toggleButtonsC.map((item) => {
     return (
       <ToggleButton className="w-full grid sm:w-fit sm:flex" value={item.value}>
         {item.icon}
         <span className="ml-1 hidden sm:block">{item.text}</span>
       </ToggleButton>
-    )
-  })
+    );
+  });
+
+  const floatIcon = loadingFavorite ? (
+    <RefreshRoundedIcon className="loading" />
+  ) : favorite ? (
+    <BookmarkIcon />
+  ) : (
+    <BookmarkBorderIcon />
+  );
 
   return (
     <div>
       {loading ? (
         <div className="grid gap-4 w-full">
-          <div className="grid gap-1">
-            <Skeleton variant="rounded" width={200} height={36}></Skeleton>
-            <Skeleton variant="rounded" width={200} height={24}></Skeleton>
+          <div className="w-full grid lg:flex gap-4 items-center sm:justify-between">
+            <div className="flex gap-4 justify-between sm:justify-start">
+              <Skeleton variant="rounded" width={200} height={47} />
+              <Skeleton variant="rounded" width={200} height={47} />
+            </div>
+            <div className="flex items-center gap-4">
+              <Skeleton variant="circular" width={40} height={40} />
+              <Skeleton
+                className="w-full md:w-[415px]"
+                variant="rounded"
+                height={47}
+              />
+            </div>
           </div>
-          <Skeleton variant="rounded" width={400} height={47}></Skeleton>
-          <div className="grid lg:flex gap-8 w-full">
-            <Skeleton variant="rounded" width='100%' height={600}></Skeleton>
-            <Skeleton variant="rounded" width={700} height={600}></Skeleton>
-            <Skeleton variant="rounded" width='100%' height={300}></Skeleton>
+          <div className="grid md:flex gap-4 w-full">
+            <Skeleton
+              className="w-full md:w-[30%]"
+              variant="rounded"
+              height={500}
+            />
+            <Skeleton
+              className="w-full md:w-[70%]"
+              variant="rounded"
+              height={500}
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-16 gap-y-4 h-fit w-full">
+            {[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].map((el) => (
+              <Skeleton variant="rounded" width={180} height={30} />
+            ))}
           </div>
         </div>
       ) : (
         <div className="grid gap-4 w-full">
-          <div className="grid gap-1">
-            <h1>{movie.title}</h1>
-            <div className="flex gap-2">
-              <span>{movie.average_rating}</span>
+          <div className="w-full grid lg:flex gap-4 items-center sm:justify-between">
+            <div className="flex flex-wrap sm:flex-nowrap gap-4 justify-between sm:justify-start items-center">
+              <h1>{movie.title}</h1>
               <Rating
                 max={10}
-                precision={0.1}
+                precision={0.5}
                 defaultValue={movie.average_rating}
                 readOnly
-                sx={{ color: red[500] }}
               />
             </div>
-          </div>
-          <ToggleButtonGroup
-            value={alignment}
-            exclusive
-            onChange={handleAlignment}
-            disabled={loadingButtons}
-          >
-            {toggleButtons}
-          </ToggleButtonGroup>
-          <div className="grid lg:flex gap-8 w-full">
-            <img src={movie.poster} className="w-full mb-6" alt="" />
-            <div className="grid gap-2 h-fit">
-              {mainInfo}
+            <div className="flex items-center gap-4">
+              <IconButton
+                color="primary"
+                disabled={loadingFavorite}
+                onClick={toggleFavorite}
+              >
+                {floatIcon}
+              </IconButton>
+              <ToggleButtonGroup
+                value={alignment}
+                exclusive
+                onChange={handleAlignment}
+                disabled={loadingButtons}
+                className="w-full sm:w-fit"
+              >
+                {toggleButtons}
+              </ToggleButtonGroup>
             </div>
-            <video className="w-full h-fit" controls >
+          </div>
+          <div className="grid md:flex gap-4 w-full">
+            <img
+              src={movie.poster}
+              className="rounded object-cover w-full md:w-[30%]"
+              alt=""
+            />
+            <video className="rounded w-full md:w-[70%]" controls>
               <source
-                // src={movie.trailer}
-                src='https://video-preview.s3.yandex.net/OHRcNgIAAAA.mp4'
-                type="video/mp4" />
+                src="https://video-preview.s3.yandex.net/OHRcNgIAAAA.mp4"
+                type="video/mp4"
+              />
               Your browser doesn't support HTML5 video tag.
             </video>
+          </div>
+          <Divider />
+          <div>
+            <h1 className="mb-4">Подробная информация</h1>
+            <AdaptiveContainer
+              content={detailedInfo}
+              additionalStyles="gap-x-16 gap-y-3"
+            />
+          </div>
+          <Divider />
+          <div>
+            <h1 className="mb-4">Отзывы</h1>
+            <div className="grid gap-8">
+              {reviews.length ? reviews : "Отзывов нема :("}
+            </div>
           </div>
         </div>
       )}

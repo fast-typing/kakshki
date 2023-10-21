@@ -5,11 +5,10 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import Main from "./pages/Main/Main";
 import Search from "./pages/Search/Search";
 import Profile from "./pages/Profile/Profile";
-import theme from "./theme.mui";
+import theme from "./additional/theme.mui";
 import { ThemeProvider } from "@emotion/react";
 import MoviePage from "./pages/MoviePage/MoviePage";
-import ErrorPage from "./pages/ErrorPage/ErrorPage";
-import "./style.css";
+import "./index.css";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
