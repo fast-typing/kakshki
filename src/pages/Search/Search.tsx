@@ -1,10 +1,4 @@
-import {
-  FormControl,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Skeleton,
-} from "@mui/material";
+import { FormControl, IconButton, InputLabel, MenuItem } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import { Movie } from "../../interfaces/Interfaces";
@@ -13,101 +7,148 @@ import CasinoRoundedIcon from "@mui/icons-material/CasinoRounded";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import MovieSceleton from "../../components/MovieSceleton/MovieSceleton";
 import AdaptiveContainer from "../../components/AdaptiveContainer/AdaptiveContainer";
+import { getAllMovies } from "../../services/http.service";
+import { MPAARatingC, filterInputsC } from "../../constants/constants";
+
+interface Movies {
+  old: Movie[];
+  current: Movie[];
+}
 
 export default function Search() {
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [defMovies, setDefMovies] = useState<Movie[]>([]);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [sortBy, setSortBy] = useState<"old" | "new" | "rating">("old");
   const [filter, setFilter] = useState({
     title: "",
     country: "",
-    genre: "",
+    genres: "",
     year: "",
     ageRating: "",
   });
+  const [movies, setMovies] = useState<Movies>({ old: [], current: [] });
   const [skeleton, setSkeleton] = useState({
     loading: true,
-    skeleton: [1, 1, 1, 1, 1].map((el) => <MovieSceleton />),
+    skeleton: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0].map((el) => <MovieSceleton />),
   });
 
   useEffect(() => {
-    fetch("https://dvigit.onrender.com/read_all_films")
-      .then((response) => response.json())
-      .then((res: Movie[]) => {
-        setMovies(res);
-        
-        setTimeout(() => {
-          setSkeleton((prev) => {
-            return { ...prev, loading: false };
-          });
-        }, 1000);
-      })
-      .catch((error) => console.error(error));
+    const init = async () => {
+      const res = await getAllMovies();
+      if (!res) return;
+      setMovies({ old: res, current: res });
+
+      const newFilter = { ...filter };
+      for (let key of Object.keys(filter)) {
+        const value = searchParams.get(key);
+        if (!value?.length) continue;
+        newFilter[key] = value;
+      }
+      setFilter({ ...newFilter });
+
+      setSkeleton((prev) => {
+        return { ...prev, loading: false };
+      });
+    };
+
+    init();
   }, []);
 
   useEffect(() => {
-    checkFilterByQuery("genre")
-    checkFilterByQuery("title")
-  }, [searchParams.get("genre"), searchParams.get("title")])
+    if (!movies.old.length) return;
+    setSkeleton({...skeleton, loading: true})
+    let allMovies = movies.old;
+    allMovies = filterByField("title", allMovies);
+    allMovies = filterByField("country", allMovies);
+    allMovies = filterByField("genres", allMovies);
+    allMovies = filterByField("year", allMovies);
+    setMovies({ ...movies, current: allMovies });
+    setSkeleton({...skeleton, loading: false})
+  }, [filter]);
 
-  function handleChange(e) {
-    setFilter((prev) => {
-      const newFilter = {
-        ...filter,
-        [e.target.name]: e.target.value,
-      };
+  useEffect(() => {
+    setFilter({ ...filter, title: searchParams.get("title") });
+  }, [searchParams.get("title")]);
 
-      return newFilter;
+  useEffect(() => {
+    if (!movies.current.length) return;
+    setSkeleton({ ...skeleton, loading: true });
+    const sortedMovies = movies.current.sort((curr, prev) => {
+      switch (sortBy) {
+        case "new":
+          return prev.year - curr.year;
+        case "old":
+          return curr.year - prev.year;
+        case "rating":
+          return prev.average_rating - curr.average_rating;
+      }
     });
-    console.log(filter);
+    setMovies({ ...movies, current: sortedMovies });
+    setSkeleton({ ...skeleton, loading: false });
+  }, [sortBy]);
+
+  function filterByField(field: string, allMovies: Movie[]): Movie[] {
+    const value = filter[field];
+
+    if (value !== searchParams.get(field)) {
+      setSearchParams({ ...getQuery(), [field]: value });
+    }
+
+    if (!value?.length) return allMovies;
+
+    return allMovies.filter((movie) => {
+      let fieldValue = movie[field];
+      if (typeof movie[field] === "object") {
+        fieldValue = fieldValue.join(" ");
+      }
+      return String(fieldValue).toLowerCase().includes(value);
+    });
   }
 
-  function checkFilterByQuery(field: string) {
-    const value = searchParams.get(field)
-    if (!value) return
-    setFilter({...filter, [field]: value})
+  function getQuery() {
+    const query = {};
+    window.location
+      .toString()
+      ?.split("?")[1]
+      ?.split("&")
+      .map((el) => {
+        const [key, value] = el?.split("=");
+        query[key] = value;
+      });
+    return query;
+  }
+
+  // !!! ФИЛЬТР ПО ДАТЕ, РЕЙТЕНГУ
+
+  function handleChange(e) {
+    setFilter({ ...filter, [e.target.name]: e.target.value.toLowerCase() });
+  }
+
+  function changeSort(e) {
+    setSortBy(e.target.value);
   }
 
   function routeToRandom() {
-    const randomIndex = Math.floor(Math.random() * movies.length);
-    const id = movies[randomIndex].id;
+    const randomIndex = Math.floor(Math.random() * movies.current.length);
+    const id = movies.current[randomIndex].id;
     navigate(`/movie/${id}`);
   }
 
   return (
-    <div className="favorite">
-      <div className="flex gap-4 mb-8 items-center flex-wrap">
-        {/* <h1 className='mb-4'>Фильтры</h1> */}
-        <input
-          placeholder="Название"
-          name="title"
-          onChange={handleChange}
-          value={filter.title}
-        />
-        <input
-          placeholder="Год издания"
-          name="year"
-          onChange={handleChange}
-          value={filter.year}
-        />
-        <input
-          placeholder="Жанр"
-          name="genre"
-          onChange={handleChange}
-          value={filter.genre}
-        />
-        <input
-          placeholder="Страна"
-          name="country"
-          onChange={handleChange}
-          value={filter.country}
-        />
-        <FormControl sx={{ width: "150px" }}>
+    <div>
+      <div className="flex flex-wrap lg:flex-nowrap gap-4 mb-8 items-center">
+        {filterInputsC.map((el) => (
+          <input
+            className="w-full"
+            placeholder={el.name}
+            name={el.value}
+            onChange={handleChange}
+            value={filter[el.value]}
+          />
+        ))}
+        <FormControl sx={{ width: "100%" }}>
           <InputLabel id="age">MPAA</InputLabel>
           <Select
-            size="small"
-            labelId="age"
             name="ageRating"
             label="MPAA"
             onChange={handleChange}
@@ -116,28 +157,39 @@ export default function Search() {
             <MenuItem value="">
               <em>None</em>
             </MenuItem>
-            <MenuItem value={"G"}>0+</MenuItem>
-            <MenuItem value={"P"}>6+</MenuItem>
-            <MenuItem value={"PG13"}>12+</MenuItem>
-            <MenuItem value={"R"}>16+</MenuItem>
-            <MenuItem value={"NC17"}>18+</MenuItem>
+            {MPAARatingC.map((el) => (
+              <MenuItem value={el.value}>{el.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl sx={{ width: "100%" }}>
+          <InputLabel id="age">Сортировка</InputLabel>
+          <Select label="Сортировка" onChange={changeSort} value={sortBy}>
+            <MenuItem value="">
+              <em>None</em>
+            </MenuItem>
+            <MenuItem value={"old"}>Сначала старые</MenuItem>
+            <MenuItem value={"new"}>Сначала новые</MenuItem>
+            <MenuItem value={"rating"}>Наибольший рейтинг</MenuItem>
           </Select>
         </FormControl>
         <IconButton
           size="large"
           sx={{ height: "fit-content" }}
           onClick={routeToRandom}
+          disabled={!movies.current.length}
+          color="primary"
         >
           <CasinoRoundedIcon />
         </IconButton>
       </div>
       <AdaptiveContainer
-        html={
+        content={
           skeleton.loading
             ? skeleton.skeleton
-            : movies.length
-            ? movies.map((movie) => (
-                <MovieCard key={movie.id} movie={movie}></MovieCard>
+            : movies.current.length
+            ? movies.current.map((movie) => (
+                <MovieCard key={movie.id} movie={movie} />
               ))
             : "Пусто :("
         }

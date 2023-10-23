@@ -9,11 +9,13 @@
   font-family: 'Montserrat';
 }
 
-:root {}
-
 header, main {
   margin: auto;
   width: 1200px;
+}
+
+h1 {
+  font-size: 1.8rem;
 }
 
 input {

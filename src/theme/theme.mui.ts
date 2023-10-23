@@ -43,6 +43,27 @@ const theme = createTheme({
         },
       ]
     },
+    MuiToggleButton: {
+      variants: [
+        {
+          props: {},
+          style: {
+            backgroundColor: '#212121',
+            transition: '.2s',
+            color: "white",
+            '&.Mui-selected': {
+              backgroundColor: mainColor
+            },
+            '&:hover.Mui-selected': {
+              backgroundColor: hoverColor
+            },
+            '&.Mui-disabled': {
+              opacity: .6
+            }
+          }
+        },
+      ]
+    },
     MuiInputLabel: {
       variants: [{
         props: {},
@@ -57,12 +78,17 @@ const theme = createTheme({
     },
     MuiIconButton: {
       variants: [{
-        props: {},
+        props: { color: "primary" },
         style: {
           color: "white",
+          transition: '.2s',
           backgroundColor: mainColor,
           '&:hover': {
             backgroundColor: hoverColor
+          },
+          '&.Mui-disabled': {
+            backgroundColor: mainColor,
+            opacity: .6
           }
         }
       }]
@@ -91,7 +117,26 @@ const theme = createTheme({
           color: "white",
         }
       }]
-    }
+    },
+    MuiRating: {
+      variants: [{
+        props: {},
+        style: {
+          '& svg': {
+            color: mainColor,
+          }
+        }
+      }]
+    },
+    MuiDivider: {
+      variants: [{
+        props: {},
+        style: {
+          backgroundColor: 'white',
+          margin: '16px 0'
+        }
+      }]
+    },
   },
   typography: {
     'fontFamily': 'Montserrat',
