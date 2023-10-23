@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import MovieIcon from "@mui/icons-material/Movie";
 import { Box, Drawer, IconButton, Button } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
@@ -12,7 +12,7 @@ import {
 } from "../../constants/constants";
 import "./Header.css";
 import AuthModal from "../AuthModal/AuthModal";
-import { isAuth, removeToken } from "../../services/auth.service";
+import { AuthContext } from "../../context/AuthProvider";
 
 interface Modal {
   isOpen: boolean;
@@ -21,8 +21,8 @@ interface Modal {
 
 export default function Header() {
   const navigate = useNavigate();
+  const { isAuth, setAuth } = useContext(AuthContext);
   const [search, setSearch] = useState("");
-  const [auth, setAuth] = useState(isAuth());
   const [modal, setModal] = useState<Modal>({ isOpen: false, type: "Вход" });
   const [inputOpen, setInputOpen] = useState(false);
   const [openSideBar, setOpenSideBar] = useState(false);
@@ -35,7 +35,7 @@ export default function Header() {
     event.preventDefault();
     if (!search.length) return;
     setInputOpen(false);
-    navigate(`/search?title=${search}`);
+    navigate(`/search?title=${encodeURI(search)}`);
     setSearch("");
   }
 
@@ -48,12 +48,11 @@ export default function Header() {
     setModal({ ...modal, isOpen: true });
   }
 
-  function closeModal()  {
+  function closeModal() {
     setModal({ ...modal, isOpen: false });
   };
 
   function logout() {
-    removeToken()
     setAuth(false)
   }
 
@@ -62,8 +61,8 @@ export default function Header() {
     const inputStyle = isMobile
       ? { width: "100%" }
       : inputOpen
-      ? openInputStyle
-      : closeInputStyle;
+        ? openInputStyle
+        : closeInputStyle;
 
     return (
       <form
@@ -100,7 +99,7 @@ export default function Header() {
             Главная
           </Button>
         </Link>
-        {auth ? (
+        {isAuth ? (
           <>
             <Link to={`profile`} className={buttonClass}>
               <Button variant="contained" className={buttonClass}>

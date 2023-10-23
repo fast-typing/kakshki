@@ -1,6 +1,7 @@
-import DeleteIcon from "@mui/icons-material/Delete";
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
+import MapRoundedIcon from '@mui/icons-material/MapRounded';
 
 export const movieFieldsC = {
   country: "Страна",
@@ -47,8 +48,9 @@ export const sideBarStyleC = {
 
 export const toggleButtonsC = [
   { value: "finished", icon: <CheckRoundedIcon />, text: "Просмотрено" },
-  { value: "postoponed", icon: <AccessTimeRoundedIcon />, text: "Отложено" },
-  { value: "abondoned", icon: <DeleteIcon />, text: "Брошено" },
+  { value: "postponed", icon: <AccessTimeRoundedIcon />, text: "Отложено" },
+  { value: "abandoned", icon: <DeleteRoundedIcon />, text: "Брошено" },
+  { value: "planned", icon: <MapRoundedIcon />, text: "Запланировано" },
 ];
 
 export const MPAARatingC = [

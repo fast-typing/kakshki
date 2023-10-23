@@ -24,7 +24,7 @@ export default function Search() {
     country: "",
     genres: "",
     year: "",
-    ageRating: "",
+    age_rating: "",
   });
   const [movies, setMovies] = useState<Movies>({ old: [], current: [] });
   const [skeleton, setSkeleton] = useState({
@@ -55,15 +55,17 @@ export default function Search() {
   }, []);
 
   useEffect(() => {
+    console.log(filter)
     if (!movies.old.length) return;
-    setSkeleton({...skeleton, loading: true})
+    setSkeleton({ ...skeleton, loading: true })
     let allMovies = movies.old;
     allMovies = filterByField("title", allMovies);
     allMovies = filterByField("country", allMovies);
     allMovies = filterByField("genres", allMovies);
     allMovies = filterByField("year", allMovies);
+    allMovies = filterByField("age_rating", allMovies);
     setMovies({ ...movies, current: allMovies });
-    setSkeleton({...skeleton, loading: false})
+    setSkeleton({ ...skeleton, loading: false })
   }, [filter]);
 
   useEffect(() => {
@@ -101,6 +103,11 @@ export default function Search() {
       if (typeof movie[field] === "object") {
         fieldValue = fieldValue.join(" ");
       }
+
+      if (field == 'age_rating') {
+        return String(fieldValue).toLowerCase() === value;
+      }
+
       return String(fieldValue).toLowerCase().includes(value);
     });
   }
@@ -113,7 +120,7 @@ export default function Search() {
       ?.split("&")
       .map((el) => {
         const [key, value] = el?.split("=");
-        query[key] = value;
+        query[key] = decodeURI(value);
       });
     return query;
   }
@@ -149,16 +156,16 @@ export default function Search() {
         <FormControl sx={{ width: "100%" }}>
           <InputLabel id="age">MPAA</InputLabel>
           <Select
-            name="ageRating"
+            name="age_rating"
             label="MPAA"
             onChange={handleChange}
-            value={filter.ageRating}
+            value={filter.age_rating}
           >
             <MenuItem value="">
               <em>None</em>
             </MenuItem>
             {MPAARatingC.map((el) => (
-              <MenuItem value={el.value}>{el.name}</MenuItem>
+              <MenuItem value={el.value.toLowerCase()}>{el.name}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -188,10 +195,10 @@ export default function Search() {
           skeleton.loading
             ? skeleton.skeleton
             : movies.current.length
-            ? movies.current.map((movie) => (
+              ? movies.current.map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />
               ))
-            : "Пусто :("
+              : "Пусто :("
         }
       />
     </div>

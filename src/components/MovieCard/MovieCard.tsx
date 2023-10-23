@@ -28,7 +28,7 @@ export default function MovieCard(props: { movie: Movie }) {
 
   async function toggleFavorite() {
     setLoading(true);
-    const token = "123";
+    const token = localStorage.getItem('token') ?? '';
     const res = await markFilm(token, props.movie.id, "favorite");
     if (typeof res == "string") { setFavorite(!favorite); }
     setLoading(false);

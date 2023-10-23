@@ -1,4 +1,4 @@
-import { Movie, Review, Login, Registration } from "../interfaces/Interfaces";
+import { Movie, Review, Login, Registration, User } from "../interfaces/Interfaces";
 
 export function login(data): Promise<Login | void> {
     return _request(`login?username=${data.username}&password=${data.password}`, 'POST')
@@ -12,7 +12,7 @@ export function getAllMovies(): Promise<Movie[] | void> {
     return _request(`get_all_films`, 'GET')
 }
 
-export function markFilm(token: string, filmId: number, type: "favorite" | "postoponed" | "abondoned" | "finished") {
+export function markFilm(token: string, filmId: number, type: "favorite" | "postopened" | "abandoned" | "finished" | "planned") {
     return _request(`update_user_list?token=${token}&film_id=${filmId}&list_type=${type}`, 'PATCH')
 }
 
@@ -22,6 +22,11 @@ export function getMovie(id: string): Promise<Movie | void> {
 
 export function getReviews(movieId: string): Promise<Review[] | void> {
     return _request(`get_all_reviews?film_id=${movieId}`, 'GET')
+}
+
+export function getUserData(): Promise<User | void> {
+    const token = localStorage.getItem('token')
+    return _request(`get_user?token=${token}`, 'GET')
 }
 
 async function _request(path: string, method: string, body?: any) {

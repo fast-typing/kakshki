@@ -50,10 +50,12 @@ export default function MoviePage() {
         );
       }
 
+      setTimeout(() => {
+        setLoading(false);
+      }, 100000)
       setMovie(resMovie);
       setReviews(jsxReviews);
       setDetailedInfo(info);
-      setLoading(false);
     };
 
     init();
@@ -61,10 +63,10 @@ export default function MoviePage() {
 
   const handleAlignment = async (
     event: React.MouseEvent<HTMLElement>,
-    newAlignment: "postoponed" | "abondoned" | "finished"
+    newAlignment: "postopened" | "abandoned" | "finished" | "planned"
   ) => {
     setLoadingButtons(true);
-    const token = "123";
+    const token = localStorage.getItem('token') ?? '';
     const res = await markFilm(token, movie.id, newAlignment);
     if (typeof res == "string") setAlignment(newAlignment);
     setLoadingButtons(false);
@@ -72,7 +74,7 @@ export default function MoviePage() {
 
   async function toggleFavorite() {
     setLoadingFavorite(true);
-    const token = "123";
+    const token = localStorage.getItem('token') ?? '';
     const res = await markFilm(token, movie.id, "favorite");
     if (typeof res == "string") setFavorite(!favorite);
     setLoadingFavorite(false);
@@ -80,9 +82,9 @@ export default function MoviePage() {
 
   const toggleButtons = toggleButtonsC.map((item) => {
     return (
-      <ToggleButton className="w-full grid sm:w-fit sm:flex" value={item.value}>
+      <ToggleButton className="w-full grid md:w-fit md:flex" value={item.value}>
         {item.icon}
-        <span className="ml-1 hidden sm:block">{item.text}</span>
+        <span className="ml-1 hidden md:block">{item.text}</span>
       </ToggleButton>
     );
   });
@@ -99,8 +101,8 @@ export default function MoviePage() {
     <div>
       {loading ? (
         <div className="grid gap-4 w-full">
-          <div className="w-full grid lg:flex gap-4 items-center sm:justify-between">
-            <div className="flex gap-4 justify-between sm:justify-start">
+          <div className="w-full grid lg:flex gap-4 items-center md:justify-between">
+            <div className="flex flex-wrap sm:flex-nowrap gap-4 justify-between sm:justify-start items-center">
               <Skeleton variant="rounded" width={200} height={47} />
               <Skeleton variant="rounded" width={200} height={47} />
             </div>
@@ -133,7 +135,7 @@ export default function MoviePage() {
         </div>
       ) : (
         <div className="grid gap-4 w-full">
-          <div className="w-full grid lg:flex gap-4 items-center sm:justify-between">
+          <div className="w-full grid gap-4 items-center md:justify-between xl:flex">
             <div className="flex flex-wrap sm:flex-nowrap gap-4 justify-between sm:justify-start items-center">
               <h1>{movie.title}</h1>
               <Rating
@@ -156,7 +158,7 @@ export default function MoviePage() {
                 exclusive
                 onChange={handleAlignment}
                 disabled={loadingButtons}
-                className="w-full sm:w-fit"
+                className="w-full md:w-fit"
               >
                 {toggleButtons}
               </ToggleButtonGroup>

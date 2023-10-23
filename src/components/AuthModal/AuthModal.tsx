@@ -1,17 +1,18 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Backdrop, Button, Fade, Modal } from "@mui/material";
 import { login, registration } from "../../services/http.service";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import { Login, Registration } from "../../interfaces/Interfaces";
-import { isAuth } from "../../services/auth.service";
+import { AuthContext } from "../../context/AuthProvider";
 
 interface Props {
   open: boolean;
   type: "Вход" | "Регистрация";
-  onClose: Function;
+  onClose: () => void;
 }
 
 export default function AuthModal(props: Props) {
+  const { setAuth, isAuth } = useContext(AuthContext);
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -24,13 +25,14 @@ export default function AuthModal(props: Props) {
     if (props.type === "Вход") {
       const res = await login(form);
       const token = (res as Login)?.access_token;
-      if (token) return;
-      localStorage.setItem("token", token);
-      close();
+      if (!token?.length) return;
+      localStorage.setItem('token', token)
+      setAuth(true)
+      props.onClose()
     } else {
       const res = await registration(form);
       if (!(res as Registration)?.id) return;
-      close();
+      props.onClose()
     }
   }
 
