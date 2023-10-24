@@ -39,7 +39,7 @@ export interface User {
   abandoned_films: [];
   favorite_films: [];
   postponed_films: [];
-  current_films: [];
+  // current_films: [];
   finished_films: [];
 }
 

@@ -13,7 +13,7 @@ import { getMovie, getReviews, markFilm } from "../../services/http.service";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
-import { movieFieldsC, toggleButtonsC } from "../../constants/constants";
+import { movieFieldsC, toggleButtonsC } from "../../App.constants";
 import ReviewBlock from "../../components/ReviewBlock/ReviewBlock";
 import AdaptiveContainer from "../../components/AdaptiveContainer/AdaptiveContainer";
 
@@ -52,7 +52,7 @@ export default function MoviePage() {
 
       setTimeout(() => {
         setLoading(false);
-      }, 100000)
+      }, 1000)
       setMovie(resMovie);
       setReviews(jsxReviews);
       setDetailedInfo(info);

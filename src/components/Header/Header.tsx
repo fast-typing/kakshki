@@ -9,10 +9,11 @@ import {
   closeInputStyleC,
   openInputStyleC,
   sideBarStyleC,
-} from "../../constants/constants";
+} from "../../App.constants";
 import "./Header.css";
 import AuthModal from "../AuthModal/AuthModal";
 import { AuthContext } from "../../context/AuthProvider";
+import { UserContext } from "../../context/UserProvider";
 
 interface Modal {
   isOpen: boolean;
@@ -21,6 +22,7 @@ interface Modal {
 
 export default function Header() {
   const navigate = useNavigate();
+  const { setUser } = useContext(UserContext);
   const { isAuth, setAuth } = useContext(AuthContext);
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState<Modal>({ isOpen: false, type: "Вход" });
@@ -45,7 +47,7 @@ export default function Header() {
   }
 
   function openModal(type: "Вход" | "Регистрация") {
-    setModal({ ...modal, isOpen: true });
+    setModal({ type: type, isOpen: true });
   }
 
   function closeModal() {
@@ -54,6 +56,8 @@ export default function Header() {
 
   function logout() {
     setAuth(false)
+    setUser(null)
+    localStorage.removeItem('token')
   }
 
   const nav = (isMobile: boolean): ReactJSXElement => {

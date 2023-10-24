@@ -28,11 +28,11 @@ export default function AuthModal(props: Props) {
       if (!token?.length) return;
       localStorage.setItem('token', token)
       setAuth(true)
-      props.onClose()
+      close()
     } else {
       const res = await registration(form);
       if (!(res as Registration)?.id) return;
-      props.onClose()
+      close()
     }
   }
 

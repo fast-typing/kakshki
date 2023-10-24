@@ -24,8 +24,7 @@ export function getReviews(movieId: string): Promise<Review[] | void> {
     return _request(`get_all_reviews?film_id=${movieId}`, 'GET')
 }
 
-export function getUserData(): Promise<User | void> {
-    const token = localStorage.getItem('token')
+export function getUserData(token: string): Promise<User | void> {
     return _request(`get_user?token=${token}`, 'GET')
 }
 

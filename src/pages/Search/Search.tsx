@@ -8,7 +8,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import MovieSceleton from "../../components/MovieSceleton/MovieSceleton";
 import AdaptiveContainer from "../../components/AdaptiveContainer/AdaptiveContainer";
 import { getAllMovies } from "../../services/http.service";
-import { MPAARatingC, filterInputsC } from "../../constants/constants";
+import { MPAARatingC, filterInputsC } from "../../App.constants";
 
 interface Movies {
   old: Movie[];
