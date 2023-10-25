@@ -1,4 +1,4 @@
-import { FormControl, IconButton, InputLabel, MenuItem } from "@mui/material";
+import { Button, FormControl, IconButton, InputLabel, MenuItem } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import { Movie } from "../../interfaces/Interfaces";
@@ -7,8 +7,9 @@ import CasinoRoundedIcon from "@mui/icons-material/CasinoRounded";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import MovieSceleton from "../../components/MovieSceleton/MovieSceleton";
 import AdaptiveContainer from "../../components/AdaptiveContainer/AdaptiveContainer";
-import { getAllMovies } from "../../additional/http.service";
-import { MPAARatingC, filterInputsC } from "../../additional/constants";
+import { getAllMovies, getUserData } from "../../services/http.service";
+import { MPAARatingC, filterInputsC } from "../../App.constants";
+import { markFavorites } from "../../services/favorite.service";
 
 interface Movies {
   old: Movie[];
@@ -24,19 +25,20 @@ export default function Search() {
     country: "",
     genres: "",
     year: "",
-    ageRating: "",
+    age_rating: "",
   });
   const [movies, setMovies] = useState<Movies>({ old: [], current: [] });
   const [skeleton, setSkeleton] = useState({
     loading: true,
-    skeleton: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0].map((el) => <MovieSceleton />),
+    skeleton: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].map((el) => <MovieSceleton />),
   });
 
   useEffect(() => {
     const init = async () => {
       const res = await getAllMovies();
       if (!res) return;
-      setMovies({ old: res, current: res });
+      const markedMovies = await markFavorites(res)
+      setMovies({ old: markedMovies, current: markedMovies });
 
       const newFilter = { ...filter };
       for (let key of Object.keys(filter)) {
@@ -56,12 +58,15 @@ export default function Search() {
 
   useEffect(() => {
     if (!movies.old.length) return;
+    setSkeleton({ ...skeleton, loading: true })
     let allMovies = movies.old;
     allMovies = filterByField("title", allMovies);
     allMovies = filterByField("country", allMovies);
     allMovies = filterByField("genres", allMovies);
     allMovies = filterByField("year", allMovies);
+    allMovies = filterByField("age_rating", allMovies);
     setMovies({ ...movies, current: allMovies });
+    setSkeleton({ ...skeleton, loading: false })
   }, [filter]);
 
   useEffect(() => {
@@ -99,6 +104,11 @@ export default function Search() {
       if (typeof movie[field] === "object") {
         fieldValue = fieldValue.join(" ");
       }
+
+      if (field == 'age_rating') {
+        return String(fieldValue).toLowerCase() === value;
+      }
+
       return String(fieldValue).toLowerCase().includes(value);
     });
   }
@@ -111,12 +121,10 @@ export default function Search() {
       ?.split("&")
       .map((el) => {
         const [key, value] = el?.split("=");
-        query[key] = value;
+        query[key] = decodeURI(value);
       });
     return query;
   }
-
-  // !!! ФИЛЬТР ПО ДАТЕ, РЕЙТЕНГУ
 
   function handleChange(e) {
     setFilter({ ...filter, [e.target.name]: e.target.value.toLowerCase() });
@@ -132,31 +140,44 @@ export default function Search() {
     navigate(`/movie/${id}`);
   }
 
+  function clearFormValue() {
+    setFilter({
+      title: "",
+      country: "",
+      genres: "",
+      year: "",
+      age_rating: "",
+    })
+  }
+
   return (
-    <div>
-      <div className="flex flex-wrap lg:flex-nowrap gap-4 mb-8 items-center">
+    <div className="grid sm:flex gap-8">
+      <div className="grid gap-4 w-full sm:w-[300px] h-fit">
         {filterInputsC.map((el) => (
-          <input
-            className="w-full"
-            placeholder={el.name}
-            name={el.value}
-            onChange={handleChange}
-            value={filter[el.value]}
-          />
+          <div className="w-full">
+            <p className="ml-2">{el.name}</p>
+            <input
+              className="w-full"
+              placeholder={el.name}
+              name={el.value}
+              onChange={handleChange}
+              value={filter[el.value]}
+            />
+          </div>
         ))}
         <FormControl sx={{ width: "100%" }}>
           <InputLabel id="age">MPAA</InputLabel>
           <Select
-            name="ageRating"
+            name="age_rating"
             label="MPAA"
             onChange={handleChange}
-            value={filter.ageRating}
+            value={filter.age_rating}
           >
             <MenuItem value="">
               <em>None</em>
             </MenuItem>
             {MPAARatingC.map((el) => (
-              <MenuItem value={el.value}>{el.name}</MenuItem>
+              <MenuItem value={el.value.toLowerCase()}>{el.name}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -171,27 +192,30 @@ export default function Search() {
             <MenuItem value={"rating"}>Наибольший рейтинг</MenuItem>
           </Select>
         </FormControl>
-        <IconButton
-          size="large"
-          sx={{ height: "fit-content" }}
-          onClick={routeToRandom}
-          disabled={!movies.current.length}
-          color="primary"
-        >
-          <CasinoRoundedIcon />
-        </IconButton>
+        <div className="flex items-center gap-2 justify-between">
+          <Button onClick={clearFormValue} variant="contained">Очистить</Button>
+          <IconButton
+            size="large"
+            sx={{ height: "fit-content" }}
+            onClick={routeToRandom}
+            disabled={!movies.current.length}
+            color="primary"
+          >
+            <CasinoRoundedIcon />
+          </IconButton>
+        </div>
       </div>
-      <AdaptiveContainer
-        content={
-          skeleton.loading
+      <div className="w-full">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {skeleton.loading
             ? skeleton.skeleton
             : movies.current.length
-            ? movies.current.map((movie) => (
+              ? movies.current.map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />
               ))
-            : "Пусто :("
-        }
-      />
+              : "Пусто :("}
+        </div>
+      </div>
     </div>
   );
 }

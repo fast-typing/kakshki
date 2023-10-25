@@ -8,11 +8,11 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import { useNavigate } from "react-router-dom";
-import { markFilm } from "../../additional/http.service";
+import { favoriteToggle } from "../../services/http.service";
 import { red } from "@mui/material/colors";
 
-export default function MovieCard(props: { movie: Movie }) {
-  const [favorite, setFavorite] = useState(false);
+export default function MovieCard(props: { movie: Movie, hideFavorite?: boolean }) {
+  const [favorite, setFavorite] = useState(props.movie.is_favorite);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -28,9 +28,9 @@ export default function MovieCard(props: { movie: Movie }) {
 
   async function toggleFavorite() {
     setLoading(true);
-    const token = "123";
-    const res = await markFilm(token, props.movie.id, "favorite");
-    if (typeof res == "string") { setFavorite(!favorite); }
+    const user_id = localStorage.getItem('user_id') ?? '';
+    const res = await favoriteToggle(user_id, props.movie.id);
+    if (res.Message) { setFavorite(!favorite); }
     setLoading(false);
   }
 
@@ -44,11 +44,14 @@ export default function MovieCard(props: { movie: Movie }) {
 
   return (
     <div className="card">
-      <div className="float-icon">
-        <IconButton disabled={loading} onClick={toggleFavorite} color="primary">
-          {floatIcon}
-        </IconButton>
-      </div>
+      {
+        props.hideFavorite ? null :
+          <div className="float-icon">
+            <IconButton disabled={loading} onClick={toggleFavorite} color="primary">
+              {floatIcon}
+            </IconButton>
+          </div>
+      }
       <div className="grid gap-1 cursor-pointer" onClick={() => routeTo(`/movie/${props.movie.id}`)}>
         <img src={props.movie.poster} alt={props.movie.poster} />
         <div className="flex justify-between items-center">
@@ -59,7 +62,7 @@ export default function MovieCard(props: { movie: Movie }) {
           </div>
         </div>
       </div>
-      <div className="flex gap-2">{getGenres()}</div>
+      {/* <div className="flex gap-2 one-rows-text">{getGenres()}</div> */}
     </div>
   );
 }

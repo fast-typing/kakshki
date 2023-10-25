@@ -1,15 +1,18 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Backdrop, Button, Fade, Modal } from "@mui/material";
-import { login, registration } from "../../additional/http.service";
+import { login, registration } from "../../services/http.service";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import { Registration } from "../../interfaces/Interfaces";
+import { AuthContext } from "../../context/AuthProvider";
 
 interface Props {
   open: boolean;
   type: "Вход" | "Регистрация";
-  onClose: Function;
+  onClose: () => void;
 }
 
 export default function AuthModal(props: Props) {
+  const { setAuth, isAuth } = useContext(AuthContext);
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -21,13 +24,24 @@ export default function AuthModal(props: Props) {
     if (form.username.length < 3 || form.password.length < 3) return;
     if (props.type === "Вход") {
       const res = await login(form);
-      if (typeof res !== "string") return;
-      props.onClose();
+      const token = res[0]?.access_token;
+      const user_id = res[1]?.user_id;
+      if (!token?.length || !user_id?.length) return;
+      localStorage.setItem('token', token)
+      localStorage.setItem('user_id', user_id)
+      setAuth(true)
+      close()
+      window.location.reload()
     } else {
       const res = await registration(form);
-      if (!res.id) return;
-      props.onClose();
+      if (!(res as Registration)?.id) return;
+      close()
     }
+  }
+
+  function close() {
+    props.onClose();
+    setForm({ username: "", password: "", email: "" });
   }
 
   function handleChange(e: any) {
@@ -39,7 +53,7 @@ export default function AuthModal(props: Props) {
   return (
     <Modal
       open={props.open}
-      onClose={() => props.onClose()}
+      onClose={close}
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
       closeAfterTransition
@@ -54,7 +68,7 @@ export default function AuthModal(props: Props) {
         <form className="modalContent w-[300px]" onSubmit={submitModal}>
           <div className="flex justify-between">
             <h2>{props.type}</h2>
-            <CloseRoundedIcon className="cursor-pointer" onClick={() => props.onClose()} />
+            <CloseRoundedIcon className="cursor-pointer" onClick={close} />
           </div>
           <input
             name="username"

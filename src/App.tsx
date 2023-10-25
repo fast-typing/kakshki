@@ -1,16 +1,13 @@
-import React from "react";
 import Header from "./components/Header/Header";
-import { Outlet } from "react-router-dom";
+import useRoutes from "./hooks/useRoutes";
 
 function App() {
+  const routes = useRoutes()
+
   return (
     <>
       <Header />
-      <div className="main-container">
-        <main className="grid gap-16">
-          <Outlet />
-        </main>
-      </div>
+      {routes}
     </>
   );
 }

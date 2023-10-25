@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import MovieIcon from "@mui/icons-material/Movie";
 import { Box, Drawer, IconButton, Button } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
@@ -9,32 +9,39 @@ import {
   closeInputStyleC,
   openInputStyleC,
   sideBarStyleC,
-} from "../../additional/constants";
+} from "../../App.constants";
 import "./Header.css";
 import AuthModal from "../AuthModal/AuthModal";
+import { AuthContext } from "../../context/AuthProvider";
+import { UserContext } from "../../context/UserProvider";
 
 interface Modal {
-  isOpen: boolean
+  isOpen: boolean;
   type: "Вход" | "Регистрация";
 }
 
 export default function Header() {
   const navigate = useNavigate();
+  const { setUser } = useContext(UserContext);
+  const { isAuth, setAuth } = useContext(AuthContext);
   const [search, setSearch] = useState("");
-  const [inputOpen, setInputOpen] = useState(false);
   const [modal, setModal] = useState<Modal>({ isOpen: false, type: "Вход" });
+  const [inputOpen, setInputOpen] = useState(false);
   const [openSideBar, setOpenSideBar] = useState(false);
 
   const openInputStyle = openInputStyleC;
   const closeInputStyle = closeInputStyleC;
   const sideBarStyle = sideBarStyleC;
 
-  function findBySearch(event: any) {
+  function findBySearch(event: any, isMobile: boolean) {
     event.preventDefault();
     if (!search.length) return;
     setInputOpen(false);
-    navigate(`/search?title=${search}`);
+    routeTo(`/search?title=${encodeURI(search)}`)
     setSearch("");
+    if (isMobile) {
+      setOpenSideBar(false)
+    }
   }
 
   function closeInput(): void {
@@ -43,58 +50,91 @@ export default function Header() {
   }
 
   function openModal(type: "Вход" | "Регистрация") {
-    setModal({ isOpen: true, type: type });
+    setModal({ type: type, isOpen: true });
   }
 
-  const closeModal = () => {
+  function closeModal() {
     setModal({ ...modal, isOpen: false });
   };
 
-  const nav = (isMobile: boolean): ReactJSXElement => {
-    const buttonClass = isMobile ? "w-full" : ""
-    const inputStyle = isMobile ? { width: "100%" } : inputOpen ? openInputStyle : closeInputStyle 
-    
+  function logout() {
+    setAuth(false)
+    setUser(null)
+    localStorage.removeItem('token')
+    localStorage.removeItem('user_id')
+    window.location.reload()
+  }
+
+  function routeTo(path: string, isMobile?: boolean) {
+    navigate(path)
+    if (isMobile) {
+      setOpenSideBar(false)
+    }
+  }
+
+  const nav = (isMobile: boolean): JSX.Element => {
+    const buttonClass = isMobile ? "w-full" : "";
+    const inputStyle = isMobile
+      ? { width: "100%" }
+      : inputOpen
+        ? openInputStyle
+        : closeInputStyle;
+
     return (
       <form
         className={isMobile ? "grid gap-6 mb-6" : "flex gap-2"}
-        onSubmit={findBySearch}
+        onSubmit={(e) => findBySearch(e, isMobile)}
       >
         <span
           className="pseudo-input"
           onMouseEnter={() => setInputOpen(true)}
           onMouseLeave={closeInput}
         >
-          <span className="material-symbols-outlined" onClick={findBySearch}>
+          <span className="material-symbols-outlined" onClick={(e) => findBySearch(e, isMobile)}>
             search
           </span>
           <input
-            value={ search }
+            value={search}
             type="text"
             onChange={(e) => setSearch(e.target.value)}
             onBlur={closeInput}
             placeholder="Найти..."
-            style={ inputStyle }
+            style={inputStyle}
           />
-          { isMobile ? ( <IconButton onClick={() => setOpenSideBar(false)}> <CloseRoundedIcon /> </IconButton>) : ("") }
+          {isMobile ? (
+            <IconButton onClick={() => setOpenSideBar(false)}>
+              {" "}
+              <CloseRoundedIcon />{" "}
+            </IconButton>
+          ) : (
+            ""
+          )}
         </span>
-        <Link to={``} className={buttonClass}>
-          <Button variant="contained" className={buttonClass}>
-            Главная
-          </Button>
-        </Link>
-        <Link to={`profile`} className={buttonClass}>
-          <Button variant="contained" className={buttonClass}>
-            Профиль
-          </Button>
-        </Link>
-        <div className={isMobile ? "grid gap-6" : "flex gap-2"}>
-          <Button onClick={() => openModal("Вход")} variant="contained">
-            Вход
-          </Button>
-          <Button onClick={() => openModal("Регистрация")} variant="contained">
-            Регистрация
-          </Button>
-        </div>
+        <Button onClick={() => routeTo('', isMobile)} variant="contained" className={buttonClass}>
+          Главная
+        </Button>
+        {isAuth ? (
+          <>
+            <Button onClick={() => routeTo('profile', isMobile)} variant="contained" className={buttonClass}>
+              Профиль
+            </Button>
+            <Button variant="contained" onClick={logout} className={buttonClass}>
+              Выйти
+            </Button>
+          </>
+        ) : (
+          <div className={isMobile ? "grid gap-6" : "flex gap-2"}>
+            <Button onClick={() => openModal("Вход")} variant="contained">
+              Вход
+            </Button>
+            <Button
+              onClick={() => openModal("Регистрация")}
+              variant="contained"
+            >
+              Регистрация
+            </Button>
+          </div>
+        )}
       </form>
     );
   };
@@ -113,13 +153,9 @@ export default function Header() {
           <IconButton color="primary" onClick={() => setOpenSideBar(true)}>
             <DragHandleRoundedIcon />
           </IconButton>
-          <Drawer
-            anchor={"right"}
-            open={openSideBar}
-            onClose={() => setOpenSideBar(false)}
-          >
+          <div className={openSideBar ? "absolute top-[86px] inset-x-0 bottom-0 z-50" : "hidden"}>
             <Box sx={sideBarStyle}>{nav(true)}</Box>
-          </Drawer>
+          </div>
         </div>
       </header>
 

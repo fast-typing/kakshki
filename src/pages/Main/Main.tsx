@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import MovieSceleton from "../../components/MovieSceleton/MovieSceleton";
 import AdaptiveContainer from "../../components/AdaptiveContainer/AdaptiveContainer";
-import { getAllMovies } from "../../additional/http.service";
+import { getAllMovies } from "../../services/http.service";
 import { Movie } from "../../interfaces/Interfaces";
 import "./Main.css";
+import { markFavorites } from "../../services/favorite.service";
 
 export default function Main() {
   const [topMovies, setTopMovies] = useState([]);
@@ -31,8 +32,9 @@ export default function Main() {
     const init = async () => {
       const res = await getAllMovies();
       if (!res) return;
-      setTopMovies(sortByField("average_rating", res));
-      setNewMovies(sortByField("year", res));
+      const markedMovies = await markFavorites(res)
+      setTopMovies(sortByField("average_rating", markedMovies));
+      setNewMovies(sortByField("year", markedMovies));
       setSkeleton({ ...skeleton, loading: false });
     };
 
